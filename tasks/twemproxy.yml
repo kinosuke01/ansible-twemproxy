@@ -1,3 +1,57 @@
+---
+
+- name: add twemproxy group
+  group: name=twemproxy
+
+- name: add twemproxy user
+  user: name=twemproxy group=twemproxy shell=/usr/sbin/nologin
+
+- name: mkdir conf
+  file: path="/usr/local/twemproxy/conf"
+        state=directory
+        group=twemproxy
+        owner=twemproxy
+        mode=0755
+
+- name: check twemproxy install
+  stat: path=/usr/local/twemproxy/sbin/nutcracker
+  register: exist_twemproxy
+
+- name: download twemproxy src
+  get_url: url=https://github.com/twitter/twemproxy/archive/v0.4.1.tar.gz dest=/usr/local/src/twemproxy-0.4.1.tar.gz
+  when: exist_twemproxy.stat.exists == false
+
+- name: extract twemproxy archive
+  command: tar xzf twemproxy-0.4.1.tar.gz chdir=/usr/local/src creates/usr/local/src/twemproxy-0.4.1
+  when: exist_twemproxy.stat.exists == false
+
+- name: configure twemproxy
+  command: >
+    ./configure
+    --enable-debug=log
+    --prefix=/usr/local/twemproxy
+    --user=twemproxy
+    --group=twemproxy
+  when: exist_twemproxy.stat.exists == false
+
+- name: make twemproxy
+  command: make chdir=/usr/local/src/twemproxy-0.4.1
+  when: exist_twemproxy.stat.exists == false
+
+- name: install twemproxy
+  command: make install chdir=/usr/local/src/twemproxy-0.4.1
+  when: exist_twemproxy.stat.exists == false
+
+- name: Adds template
+  template:
+    src: nutcracker.conf.j2
+    dest: /usr/local/twemproxy/conf/nutcracker.conf
+  tags:
+    - twemproxy:config
+  notify: ['Restart twemproxy']
+
+# ----------
+
 - name: Adds twemproxy PPA
   apt_repository:
     repo: ppa:twemproxy/stable

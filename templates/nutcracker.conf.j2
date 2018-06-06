@@ -1,0 +1,14 @@
+{% for pool, config in twemproxy_pools.iteritems() %}
+{{ pool }}:
+{%   for key, value in config.iteritems() %}
+{%     if key != "servers" %}
+  {{ key }}: {{ value }}
+{%     else %}
+  servers:
+{%       for srv in value %}
+    - {{ srv }}
+{%       endfor %}
+{%     endif %}
+{%   endfor %}
+{% endfor %}
+
