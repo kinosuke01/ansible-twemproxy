@@ -42,52 +42,24 @@
   command: make install chdir=/usr/local/src/twemproxy-0.4.1
   when: exist_twemproxy.stat.exists == false
 
-- name: Adds template
-  template:
-    src: nutcracker.conf.j2
-    dest: /usr/local/twemproxy/conf/nutcracker.conf
-  tags:
-    - twemproxy:config
-  notify: ['Restart twemproxy']
-
-# ----------
-
-- name: Adds twemproxy PPA
-  apt_repository:
-    repo: ppa:twemproxy/stable
-
-- name: Installs twemproxy & redis-tools
-  apt:
-    pkg: "{{ item }}"
-    state: present
-  with_items:
-    - twemproxy
-    - redis-tools
-
-- name: Patch systemd service file
-  lineinfile:
-    dest: /lib/systemd/system/twemproxy.service
-    regexp: '^ExecStart'
-    line: 'ExecStart=/usr/sbin/nutcracker $DAEMON_ARGS'
-  notify: ['Reload systemd','Restart twemproxy']
-
-- name: Adds daemon options
-  template:
-    src: defaults.conf.j2
-    dest: /etc/default/twemproxy
-  notify: ['Restart twemproxy']
-
-- name: Adds template
+- name: put twemproxy.conf
   template:
     src: twemproxy.conf.j2
-    dest: /etc/twemproxy.conf
+    dest: /usr/local/twemproxy/conf/twemproxy.conf
   tags:
     - twemproxy:config
   notify: ['Restart twemproxy']
 
-- name: Touches override file so systemd doesnt freak out
-  copy:
-    dest: /etc/default/twemproxy.override
-    content: "# override file"
-  notify: ['Restart twemproxy']
+- name: put init script
+  template:
+    src: twemproxy.init.j2
+    dest: /etc/init.d/twemproxy
+    mode: 755
+  when: exist_twemproxy.stat.exists == false
+
+- name: register service twemproxy
+  service:
+    name: twemproxy
+    state: started
+    enabled: yes
 
