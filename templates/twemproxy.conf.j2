@@ -1,19 +1,14 @@
-{% set _servers = [] -%}
-
 {% for pool, config in twemproxy_pools.iteritems() %}
 {{ pool }}:
 {%   for key, value in config.iteritems() %}
 {%     if key != "servers" %}
   {{ key }}: {{ value }}
 {%     else %}
-{%       for srv in groups[value.group] %}
-{%- set _ = _servers.append(hostvars[srv]['ansible_' + value.interface].ipv4.address + ":" + value.port) -%}
+  servers:
+{%       for srv in value %}
+    - {{ srv }}
 {%       endfor %}
 {%     endif %}
 {%   endfor %}
-{% endfor %}
-  servers:
-{% for srv in _servers %}
-    - {{ srv }}:127
 {% endfor %}
 

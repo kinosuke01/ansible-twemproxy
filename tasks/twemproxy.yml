@@ -1,39 +1,99 @@
-- name: Adds twemproxy PPA
-  apt_repository:
-    repo: ppa:twemproxy/stable
+---
 
-- name: Installs twemproxy & redis-tools
-  apt:
-    pkg: "{{ item }}"
+- name: add twemproxy group
+  group: name=twemproxy
+
+- name: add twemproxy user
+  user: name=twemproxy group=twemproxy shell=/usr/sbin/nologin
+
+- name: mkdir conf
+  file: path="/usr/local/twemproxy/conf"
+        state=directory
+        group=twemproxy
+        owner=twemproxy
+        mode=0755
+
+- name: mkdir log
+  file: path="/var/log/twemproxy"
+        state=directory
+        group=twemproxy
+        owner=twemproxy
+        mode=0755
+
+- name: install gcc
+  yum:
+    name: gcc
     state: present
-  with_items:
-    - twemproxy
-    - redis-tools
 
-- name: Patch systemd service file
-  lineinfile:
-    dest: /lib/systemd/system/twemproxy.service
-    regexp: '^ExecStart'
-    line: 'ExecStart=/usr/sbin/nutcracker $DAEMON_ARGS'
-  notify: ['Reload systemd','Restart twemproxy']
+- name: install automake
+  yum:
+    name: automake
+    state: present
 
-- name: Adds daemon options
+- name: install autoconf
+  yum:
+    name: autoconf
+    state: present
+
+- name: install libtool
+  yum:
+    name: libtool
+    state: present
+
+- name: check twemproxy install
+  stat: path=/usr/local/twemproxy/sbin/nutcracker
+  register: exist_twemproxy
+
+- name: download twemproxy src
+  get_url: url=https://github.com/twitter/twemproxy/archive/v0.4.1.tar.gz dest=/usr/local/src/twemproxy-0.4.1.tar.gz
+  when: exist_twemproxy.stat.exists == false
+
+- name: extract twemproxy archive
+  command: tar xzf twemproxy-0.4.1.tar.gz chdir=/usr/local/src creates=usr/local/src/twemproxy-0.4.1
+  when: exist_twemproxy.stat.exists == false
+
+- name: autoreconf
+  command: autoreconf -fvi chdir=/usr/local/src/twemproxy-0.4.1
+  when: exist_twemproxy.stat.exists == false
+
+- name: configure twemproxy
+  command: >
+    ./configure
+    --prefix=/usr/local/twemproxy
+    chdir=/usr/local/src/twemproxy-0.4.1
+  # command: >
+  #   ./configure
+  #   --enable-debug=log
+  #   --prefix=/usr/local/twemproxy
+  #   chdir=/usr/local/src/twemproxy-0.4.1
+  when: exist_twemproxy.stat.exists == false
+
+- name: make twemproxy
+  command: make chdir=/usr/local/src/twemproxy-0.4.1
+  when: exist_twemproxy.stat.exists == false
+
+- name: install twemproxy
+  command: make install chdir=/usr/local/src/twemproxy-0.4.1
+  when: exist_twemproxy.stat.exists == false
+
+- name: put init script
   template:
-    src: defaults.conf.j2
-    dest: /etc/default/twemproxy
-  notify: ['Restart twemproxy']
+    src: twemproxy.init.j2
+    dest: /etc/init.d/twemproxy
+    mode: 755
+  # when: exist_twemproxy.stat.exists == false
 
-- name: Adds template
+- name: put twemproxy.conf
   template:
     src: twemproxy.conf.j2
-    dest: /etc/twemproxy.conf
+    dest: /usr/local/twemproxy/conf/twemproxy.yml
   tags:
     - twemproxy:config
   notify: ['Restart twemproxy']
 
-- name: Touches override file so systemd doesnt freak out
-  copy:
-    dest: /etc/default/twemproxy.override
-    content: "# override file"
-  notify: ['Restart twemproxy']
+- name: register service twemproxy
+  service:
+    name: twemproxy
+    state: started
+    enabled: yes
 

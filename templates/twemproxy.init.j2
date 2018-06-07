@@ -1,0 +1,84 @@
+#! /bin/sh
+#
+# chkconfig: - 55 45
+# description:  Twitter's twemproxy nutcracker
+# processname: twemproxy
+# config: /etc/sysconfig/twemproxy
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+USER="twemproxy"
+OPTIONS="-d -c /usr/local/twemproxy/conf/twemproxy.yml -o /var/log/twemproxy/twemproxy.log -s {{ twemproxy_stats_port }} -a {{ twemproxy_stats_addr }} -i {{ twemproxy_stats_interval }} -m {{ twemproxy_mbuf_size }}"
+
+if [ -f /etc/sysconfig/twemproxy ];then
+    . /etc/sysconfig/twemproxy
+fi
+
+# Check that networking is up.
+if [ "$NETWORKING" = "no" ]
+then
+    exit 0
+fi
+
+RETVAL=0
+prog="twemproxy"
+prog_path="/usr/local/twemproxy/sbin/nutcracker"
+
+start () {
+    echo -n $"Starting $prog: "
+    #Test the config before start.
+    daemon --user ${USER} ${prog_path} $OPTIONS -t >/dev/null  2>&1
+    RETVAL=$?
+    if [ $RETVAL -ne 0 ] ; then
+        echo  "Config check fail! Please  use '${prog_path} $OPTIONS' for detail."
+        echo_failure;
+        echo; 
+        exit 1 
+    fi
+
+    daemon --user ${USER} ${prog_path} $OPTIONS
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/${prog}
+}
+stop () {
+    echo -n $"Stopping $prog: "
+    killproc ${prog_path}
+    RETVAL=$?
+    echo
+    if [ $RETVAL -eq 0 ] ; then
+        rm -f /var/lock/subsys/${prog}
+    fi
+}
+
+restart () {
+    stop
+    start
+}
+
+
+# See how we were called.
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status ${prog_path}
+    ;;
+  restart|reload)
+    restart
+    ;;
+  condrestart)
+    [ -f /var/lock/subsys/twemproxy ] && restart || :
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|status|restart|reload|condrestart}"
+    exit 1
+esac
+
+exit $?
+

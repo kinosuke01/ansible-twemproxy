@@ -1,5 +1,4 @@
-twemproxy_mbuf_size: 16384
-twemproxy_output: /var/log/twemproxy.log
+twemproxy_mbuf_size: 512 # 16384
 twemproxy_stats_port: 22221
 twemproxy_stats_addr: 127.0.0.1
 
