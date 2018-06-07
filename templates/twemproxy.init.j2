@@ -9,7 +9,7 @@
 . /etc/rc.d/init.d/functions
 
 USER="twemproxy"
-OPTIONS="-d -c /usr/local/twemproxy/conf/twemproxy.yml -o {{ twemproxy_output }} -s {{ twemproxy_stats_port }} -a {{ twemproxy_stats_addr }} -i {{ twemproxy_stats_interval }} -m {{ twemproxy_mbuf_size }}"
+OPTIONS="-d -c /usr/local/twemproxy/conf/twemproxy.yml -o /var/log/twemproxy/twemproxy.log -s {{ twemproxy_stats_port }} -a {{ twemproxy_stats_addr }} -i {{ twemproxy_stats_interval }} -m {{ twemproxy_mbuf_size }}"
 
 if [ -f /etc/sysconfig/twemproxy ];then
     . /etc/sysconfig/twemproxy
@@ -23,27 +23,28 @@ fi
 
 RETVAL=0
 prog="twemproxy"
+prog_path="/usr/local/twemproxy/sbin/nutcracker"
 
 start () {
     echo -n $"Starting $prog: "
     #Test the config before start.
-    daemon --user ${USER} ${prog} $OPTIONS -t >/dev/null  2>&1
+    daemon --user ${USER} ${prog_path} $OPTIONS -t >/dev/null  2>&1
     RETVAL=$?
     if [ $RETVAL -ne 0 ] ; then
-        echo  "Config check fail! Please  use 'twemproxy -c /usr/local/twemproxy/conf/twemproxy.yml' for detail."
+        echo  "Config check fail! Please  use '${prog_path} $OPTIONS' for detail."
         echo_failure;
         echo; 
         exit 1 
     fi
 
-    daemon --user ${USER} ${prog} $OPTIONS
+    daemon --user ${USER} ${prog_path} $OPTIONS
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && touch /var/lock/subsys/${prog}
 }
 stop () {
     echo -n $"Stopping $prog: "
-    killproc ${prog}
+    killproc ${prog_path}
     RETVAL=$?
     echo
     if [ $RETVAL -eq 0 ] ; then
@@ -66,7 +67,7 @@ case "$1" in
     stop
     ;;
   status)
-    status ${prog}
+    status ${prog_path}
     ;;
   restart|reload)
     restart

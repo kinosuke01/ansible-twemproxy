@@ -13,6 +13,13 @@
         owner=twemproxy
         mode=0755
 
+- name: mkdir log
+  file: path="/var/log/twemproxy"
+        state=directory
+        group=twemproxy
+        owner=twemproxy
+        mode=0755
+
 - name: install gcc
   yum:
     name: gcc
@@ -65,20 +72,20 @@
   command: make install chdir=/usr/local/src/twemproxy-0.4.1
   when: exist_twemproxy.stat.exists == false
 
-- name: put twemproxy.conf
-  template:
-    src: twemproxy.conf.j2
-    dest: /usr/local/twemproxy/conf/twemproxy.conf
-  tags:
-    - twemproxy:config
-  notify: ['Restart twemproxy']
-
 - name: put init script
   template:
     src: twemproxy.init.j2
     dest: /etc/init.d/twemproxy
     mode: 755
-  when: exist_twemproxy.stat.exists == false
+  # when: exist_twemproxy.stat.exists == false
+
+- name: put twemproxy.conf
+  template:
+    src: twemproxy.conf.j2
+    dest: /usr/local/twemproxy/conf/twemproxy.yml
+  tags:
+    - twemproxy:config
+  notify: ['Restart twemproxy']
 
 - name: register service twemproxy
   service:
