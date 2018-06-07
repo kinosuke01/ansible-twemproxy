@@ -28,6 +28,11 @@
     name: autoconf
     state: present
 
+- name: install libtool
+  yum:
+    name: libtool
+    state: present
+
 - name: check twemproxy install
   stat: path=/usr/local/twemproxy/sbin/nutcracker
   register: exist_twemproxy
