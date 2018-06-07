@@ -20,6 +20,13 @@
         owner=twemproxy
         mode=0755
 
+- name: create pid file
+  file: path="/var/run/twemproxy.pid"
+        state=directory
+        group=twemproxy
+        owner=twemproxy
+        mode=0755
+
 - name: install gcc
   yum:
     name: gcc
