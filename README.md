@@ -9,8 +9,7 @@ Tested on 16.04
 
 All variables can be found at twemproxy documentation.
 
-- `twemproxy_mbuf_size`: 16384
-- `twemproxy_output`: /var/log/twemproxy.log
+- `twemproxy_mbuf_size`: 512
 - `twemproxy_stats_port`: 22221
 - `twemproxy_stats_addr`: 127.0.0.1
 - `twemproxy_stats_interval`: 30000 # msecs
@@ -39,11 +38,8 @@ twemproxy_pools:
     server_retry_timeout: 30000
     server_failure_limit: 1
     servers:
-      group: redis
-      port: "{{ redis_port }}"
-      interface: "{{ redis_interface }}"
+      redis01.example.com:6379:1
+      redis02.example.com:6379:1
 ```
 
 
-
-Michel Blanc <mb@mbnet.fr>
