@@ -46,8 +46,9 @@
   when: exist_twemproxy.stat.exists == false
 
 - name: autoconf
-  command: autoconf -f chdir=/usr/local/src/twemproxy-0.4.1
+  command: autoconf -fvi chdir=/usr/local/src/twemproxy-0.4.1
   when: exist_twemproxy.stat.exists == false
+  ignore_errors: True
 
 - name: configure twemproxy
   command: >
