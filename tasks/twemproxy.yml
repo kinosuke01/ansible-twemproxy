@@ -45,18 +45,15 @@
   command: tar xzf twemproxy-0.4.1.tar.gz chdir=/usr/local/src creates=usr/local/src/twemproxy-0.4.1
   when: exist_twemproxy.stat.exists == false
 
-- name: autoconf
-  command: autoconf -fvi chdir=/usr/local/src/twemproxy-0.4.1
+- name: autoreconf
+  command: autoreconf -fvi chdir=/usr/local/src/twemproxy-0.4.1
   when: exist_twemproxy.stat.exists == false
-  ignore_errors: True
 
 - name: configure twemproxy
   command: >
     ./configure
     --enable-debug=log
     --prefix=/usr/local/twemproxy
-    --user=twemproxy
-    --group=twemproxy
     chdir=/usr/local/src/twemproxy-0.4.1
   when: exist_twemproxy.stat.exists == false
 
