@@ -13,6 +13,16 @@
         owner=twemproxy
         mode=0755
 
+- name: install gcc
+  yum:
+    name: gcc
+    state: present
+
+- name: install autoconf
+  yum:
+    name: autoconf
+    state: present
+
 - name: check twemproxy install
   stat: path=/usr/local/twemproxy/sbin/nutcracker
   register: exist_twemproxy
