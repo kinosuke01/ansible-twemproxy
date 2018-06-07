@@ -18,6 +18,11 @@
     name: gcc
     state: present
 
+- name: install automake
+  yum:
+    name: automake
+    state: present
+
 - name: install autoconf
   yum:
     name: autoconf
