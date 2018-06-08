@@ -21,8 +21,8 @@
         mode=0755
 
 - name: create pid file
-  file: path="/var/run/twemproxy.pid"
-        state=touch
+  file: path="/var/run/twemproxy"
+        state=directory
         group=twemproxy
         owner=twemproxy
         mode=0755
