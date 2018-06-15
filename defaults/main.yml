@@ -3,3 +3,4 @@ twemproxy_stats_port: 22222
 twemproxy_stats_addr: 0.0.0.0
 
 twemproxy_stats_interval: 30000 # msecs
+twemproxy_file_max: 1024

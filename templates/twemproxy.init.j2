@@ -8,6 +8,8 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
+ulimit -n {{ twemproxy_file_max }}
+
 USER="twemproxy"
 OPTIONS="-d -c /usr/local/twemproxy/conf/twemproxy.yml -o /var/log/twemproxy/twemproxy.log -s {{ twemproxy_stats_port }} -a {{ twemproxy_stats_addr }} -i {{ twemproxy_stats_interval }} -m {{ twemproxy_mbuf_size }} -p /var/run/twemproxy/twemproxy.pid"
 
